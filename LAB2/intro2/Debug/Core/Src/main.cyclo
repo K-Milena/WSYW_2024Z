@@ -5,4 +5,5 @@
 ../Core/Src/main.c:293:13:MX_GPIO_Init	1
 ../Core/Src/main.c:422:7:HAL_TIM_PeriodElapsedCallback	1
 ../Core/Src/main.c:429:7:HAL_TIM_PWM_PulseFinishedCallback	3
-../Core/Src/main.c:452:6:Error_Handler	1
+../Core/Src/main.c:448:7:HAL_TIM_IC_CaptureCallback	5
+../Core/Src/main.c:475:6:Error_Handler	1

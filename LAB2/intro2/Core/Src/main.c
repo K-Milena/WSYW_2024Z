@@ -69,8 +69,8 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	 initialise_monitor_handles();
-	printf("test");
+	initialise_monitor_handles();
+printf("test");
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -239,7 +239,7 @@ static void MX_TIM4_Init(void)
   htim4.Instance = TIM4;
   htim4.Init.Prescaler = 48000-1;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 500;
+  htim4.Init.Period = 1000;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
@@ -443,6 +443,29 @@ static void MX_GPIO_Init(void)
 		}
 	}
 
+	uint32_t moment_wcisniecia, moment_zwolnienia;
+	uint32_t numer_wyzwolenia_przerwania = 0;
+	void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+	{
+		if(htim == &htim2)
+		{
+			if(numer_wyzwolenia_przerwania == 0)
+			{
+				moment_wcisniecia = HAL_TIM_ReadCapturedValue(htim,TIM_CHANNEL_1);
+			}
+			if(numer_wyzwolenia_przerwania == 1)
+			{
+				moment_zwolnienia = HAL_TIM_ReadCapturedValue(htim,TIM_CHANNEL_1);
+			}
+			numer_wyzwolenia_przerwania++;
+			if(numer_wyzwolenia_przerwania == 2)
+			{
+				printf("Czas wcisniecia przycisku; %d ms \n", moment_zwolnienia - moment_wcisniecia);
+				numer_wyzwolenia_przerwania = 0;
+			}
+
+		}
+	}
 /* USER CODE END 4 */
 
 /**
