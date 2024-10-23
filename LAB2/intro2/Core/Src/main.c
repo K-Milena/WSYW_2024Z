@@ -181,7 +181,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 48000-1;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 4294967295;
+  htim2.Init.Period = 10000;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -203,7 +203,7 @@ static void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
-  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_BOTHEDGE;
   sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
   sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
   sConfigIC.ICFilter = 15;
@@ -237,9 +237,9 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 1 */
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 480-1;
+  htim4.Init.Prescaler = 48000-1;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 1000;
+  htim4.Init.Period = 500;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
@@ -425,13 +425,19 @@ static void MX_GPIO_Init(void)
 			HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
 	}
 	uint32_t pulse_val;
+	uint32_t increment, autoreload;
 	void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 	{
 		if(htim == &htim4)
 		{
+
+			autoreload = __HAL_TIM_GET_AUTORELOAD(&htim4);
+			increment = autoreload * 0.01;
+
+
 			pulse_val = __HAL_TIM_GET_COMPARE(&htim4, TIM_CHANNEL_3);
-			pulse_val = pulse_val + 10;
-			if(pulse_val>1000)
+			pulse_val = pulse_val + increment;
+			if(pulse_val>autoreload)
 				pulse_val=0;
 			__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, pulse_val);
 		}
