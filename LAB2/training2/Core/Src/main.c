@@ -407,16 +407,15 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-//wykorzystanie timera do odliczania czasu + pewniej akcji co określony czas.
-uint32_t seconds_counter = 0;
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) //za pomocą tim4 domyślnie przełącza się LD4 - zielona
+uint32_t click_counter = 0;
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
-    if(htim == &htim4)  // Sprawdź, czy to przerwanie z Timera 4
-    {
-        seconds_counter++;  // Zwiększ licznik sekund o 1
-        printf("Upłynęło: %lu sekund\n", seconds_counter);  // Wyświetl liczbę upływających sekund
-    }
+	if(htim == &htim2)
+	{
+		click_counter++;
+		printf("You clicked the button %d times. \n", click_counter);
+
+	}
 }
 
 /* USER CODE END 4 */

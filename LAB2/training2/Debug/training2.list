@@ -7,23 +7,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
   1 .text         00004528  080001a0  080001a0  000011a0  2**4
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .rodata       00000090  080046c8  080046c8  000056c8  2**2
+  2 .rodata       00000098  080046c8  080046c8  000056c8  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  3 .ARM.extab    00000000  08004758  08004758  00006070  2**0
+  3 .ARM.extab    00000000  08004760  08004760  00006070  2**0
                   CONTENTS
-  4 .ARM          00000008  08004758  08004758  00005758  2**2
+  4 .ARM          00000008  08004760  08004760  00005760  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  5 .preinit_array 00000000  08004760  08004760  00006070  2**0
+  5 .preinit_array 00000000  08004768  08004768  00006070  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  6 .init_array   00000004  08004760  08004760  00005760  2**2
+  6 .init_array   00000004  08004768  08004768  00005768  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  7 .fini_array   00000004  08004764  08004764  00005764  2**2
+  7 .fini_array   00000004  0800476c  0800476c  0000576c  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  8 .data         00000070  20000000  08004768  00006000  2**2
+  8 .data         00000070  20000000  08004770  00006000  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  9 .bss          000002b0  20000070  080047d8  00006070  2**2
+  9 .bss          000002b0  20000070  080047e0  00006070  2**2
                   ALLOC
- 10 ._user_heap_stack 00000600  20000320  080047d8  00006320  2**0
+ 10 ._user_heap_stack 00000600  20000320  080047e0  00006320  2**0
                   ALLOC
  11 .ARM.attributes 00000030  00000000  00000000  00006070  2**0
                   CONTENTS, READONLY
@@ -39,13 +39,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  17 .debug_line   0000a714  00000000  00000000  00027283  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    0008a413  00000000  00000000  00031997  2**0
+ 18 .debug_str    0008a452  00000000  00000000  00031997  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000043  00000000  00000000  000bbdaa  2**0
+ 19 .comment      00000043  00000000  00000000  000bbde9  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  0000331c  00000000  00000000  000bbdf0  2**2
+ 20 .debug_frame  0000331c  00000000  00000000  000bbe2c  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_line_str 0000006e  00000000  00000000  000bf10c  2**0
+ 21 .debug_line_str 0000006e  00000000  00000000  000bf148  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -1334,43 +1334,43 @@ static void MX_GPIO_Init(void)
  8000b04:	40020000 	.word	0x40020000
  8000b08:	40020400 	.word	0x40020400
 
-08000b0c <HAL_TIM_PeriodElapsedCallback>:
-/* USER CODE BEGIN 4 */
-//wykorzystanie timera do odliczania czasu + pewniej akcji co określony czas.
-uint32_t seconds_counter = 0;
+08000b0c <HAL_TIM_IC_CaptureCallback>:
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) //za pomocą tim4 domyślnie przełącza się LD4 - zielona
+/* USER CODE BEGIN 4 */
+uint32_t click_counter = 0;
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
  8000b0c:	b580      	push	{r7, lr}
  8000b0e:	b082      	sub	sp, #8
  8000b10:	af00      	add	r7, sp, #0
  8000b12:	6078      	str	r0, [r7, #4]
-    if(htim == &htim4)  // Sprawdź, czy to przerwanie z Timera 4
+	if(htim == &htim2)
  8000b14:	687b      	ldr	r3, [r7, #4]
- 8000b16:	4a09      	ldr	r2, [pc, #36]	@ (8000b3c <HAL_TIM_PeriodElapsedCallback+0x30>)
+ 8000b16:	4a09      	ldr	r2, [pc, #36]	@ (8000b3c <HAL_TIM_IC_CaptureCallback+0x30>)
  8000b18:	4293      	cmp	r3, r2
- 8000b1a:	d10a      	bne.n	8000b32 <HAL_TIM_PeriodElapsedCallback+0x26>
-    {
-        seconds_counter++;  // Zwiększ licznik sekund o 1
- 8000b1c:	4b08      	ldr	r3, [pc, #32]	@ (8000b40 <HAL_TIM_PeriodElapsedCallback+0x34>)
+ 8000b1a:	d10a      	bne.n	8000b32 <HAL_TIM_IC_CaptureCallback+0x26>
+	{
+		click_counter++;
+ 8000b1c:	4b08      	ldr	r3, [pc, #32]	@ (8000b40 <HAL_TIM_IC_CaptureCallback+0x34>)
  8000b1e:	681b      	ldr	r3, [r3, #0]
  8000b20:	3301      	adds	r3, #1
- 8000b22:	4a07      	ldr	r2, [pc, #28]	@ (8000b40 <HAL_TIM_PeriodElapsedCallback+0x34>)
+ 8000b22:	4a07      	ldr	r2, [pc, #28]	@ (8000b40 <HAL_TIM_IC_CaptureCallback+0x34>)
  8000b24:	6013      	str	r3, [r2, #0]
-        printf("Upłynęło: %lu sekund\n", seconds_counter);  // Wyświetl liczbę upływających sekund
- 8000b26:	4b06      	ldr	r3, [pc, #24]	@ (8000b40 <HAL_TIM_PeriodElapsedCallback+0x34>)
+		printf("You clicked the button %d times. \n", click_counter);
+ 8000b26:	4b06      	ldr	r3, [pc, #24]	@ (8000b40 <HAL_TIM_IC_CaptureCallback+0x34>)
  8000b28:	681b      	ldr	r3, [r3, #0]
  8000b2a:	4619      	mov	r1, r3
- 8000b2c:	4805      	ldr	r0, [pc, #20]	@ (8000b44 <HAL_TIM_PeriodElapsedCallback+0x38>)
+ 8000b2c:	4805      	ldr	r0, [pc, #20]	@ (8000b44 <HAL_TIM_IC_CaptureCallback+0x38>)
  8000b2e:	f002 fef3 	bl	8003918 <iprintf>
-    }
+
+	}
 }
  8000b32:	bf00      	nop
  8000b34:	3708      	adds	r7, #8
  8000b36:	46bd      	mov	sp, r7
  8000b38:	bd80      	pop	{r7, pc}
  8000b3a:	bf00      	nop
- 8000b3c:	200000d4 	.word	0x200000d4
+ 8000b3c:	2000008c 	.word	0x2000008c
  8000b40:	2000011c 	.word	0x2000011c
  8000b44:	080046dc 	.word	0x080046dc
 
@@ -2074,7 +2074,7 @@ LoopFillZerobss:
   ldr r1, =_edata
  8000e48:	20000070 	.word	0x20000070
   ldr r2, =_sidata
- 8000e4c:	08004768 	.word	0x08004768
+ 8000e4c:	08004770 	.word	0x08004770
   ldr r2, =_sbss
  8000e50:	20000070 	.word	0x20000070
   ldr r4, =_ebss
@@ -4408,7 +4408,7 @@ HAL_StatusTypeDef HAL_RCC_ClockConfig(RCC_ClkInitTypeDef  *RCC_ClkInitStruct, ui
  8001b46:	bf00      	nop
  8001b48:	40023c00 	.word	0x40023c00
  8001b4c:	40023800 	.word	0x40023800
- 8001b50:	080046f8 	.word	0x080046f8
+ 8001b50:	08004700 	.word	0x08004700
  8001b54:	20000000 	.word	0x20000000
  8001b58:	20000004 	.word	0x20000004
 
@@ -5770,7 +5770,7 @@ void HAL_TIM_IRQHandler(TIM_HandleTypeDef *htim)
 #else
           HAL_TIM_IC_CaptureCallback(htim);
  8002412:	6878      	ldr	r0, [r7, #4]
- 8002414:	f000 fa91 	bl	800293a <HAL_TIM_IC_CaptureCallback>
+ 8002414:	f7fe fb7a 	bl	8000b0c <HAL_TIM_IC_CaptureCallback>
  8002418:	e005      	b.n	8002426 <HAL_TIM_IRQHandler+0x5e>
         {
 #if (USE_HAL_TIM_REGISTER_CALLBACKS == 1)
@@ -5779,7 +5779,7 @@ void HAL_TIM_IRQHandler(TIM_HandleTypeDef *htim)
 #else
           HAL_TIM_OC_DelayElapsedCallback(htim);
  800241a:	6878      	ldr	r0, [r7, #4]
- 800241c:	f000 fa83 	bl	8002926 <HAL_TIM_OC_DelayElapsedCallback>
+ 800241c:	f000 fa8d 	bl	800293a <HAL_TIM_OC_DelayElapsedCallback>
           HAL_TIM_PWM_PulseFinishedCallback(htim);
  8002420:	6878      	ldr	r0, [r7, #4]
  8002422:	f000 fa94 	bl	800294e <HAL_TIM_PWM_PulseFinishedCallback>
@@ -5828,7 +5828,7 @@ void HAL_TIM_IRQHandler(TIM_HandleTypeDef *htim)
 #else
         HAL_TIM_IC_CaptureCallback(htim);
  800245e:	6878      	ldr	r0, [r7, #4]
- 8002460:	f000 fa6b 	bl	800293a <HAL_TIM_IC_CaptureCallback>
+ 8002460:	f7fe fb54 	bl	8000b0c <HAL_TIM_IC_CaptureCallback>
  8002464:	e005      	b.n	8002472 <HAL_TIM_IRQHandler+0xaa>
       {
 #if (USE_HAL_TIM_REGISTER_CALLBACKS == 1)
@@ -5837,7 +5837,7 @@ void HAL_TIM_IRQHandler(TIM_HandleTypeDef *htim)
 #else
         HAL_TIM_OC_DelayElapsedCallback(htim);
  8002466:	6878      	ldr	r0, [r7, #4]
- 8002468:	f000 fa5d 	bl	8002926 <HAL_TIM_OC_DelayElapsedCallback>
+ 8002468:	f000 fa67 	bl	800293a <HAL_TIM_OC_DelayElapsedCallback>
         HAL_TIM_PWM_PulseFinishedCallback(htim);
  800246c:	6878      	ldr	r0, [r7, #4]
  800246e:	f000 fa6e 	bl	800294e <HAL_TIM_PWM_PulseFinishedCallback>
@@ -5885,7 +5885,7 @@ void HAL_TIM_IRQHandler(TIM_HandleTypeDef *htim)
 #else
         HAL_TIM_IC_CaptureCallback(htim);
  80024aa:	6878      	ldr	r0, [r7, #4]
- 80024ac:	f000 fa45 	bl	800293a <HAL_TIM_IC_CaptureCallback>
+ 80024ac:	f7fe fb2e 	bl	8000b0c <HAL_TIM_IC_CaptureCallback>
  80024b0:	e005      	b.n	80024be <HAL_TIM_IRQHandler+0xf6>
       {
 #if (USE_HAL_TIM_REGISTER_CALLBACKS == 1)
@@ -5894,7 +5894,7 @@ void HAL_TIM_IRQHandler(TIM_HandleTypeDef *htim)
 #else
         HAL_TIM_OC_DelayElapsedCallback(htim);
  80024b2:	6878      	ldr	r0, [r7, #4]
- 80024b4:	f000 fa37 	bl	8002926 <HAL_TIM_OC_DelayElapsedCallback>
+ 80024b4:	f000 fa41 	bl	800293a <HAL_TIM_OC_DelayElapsedCallback>
         HAL_TIM_PWM_PulseFinishedCallback(htim);
  80024b8:	6878      	ldr	r0, [r7, #4]
  80024ba:	f000 fa48 	bl	800294e <HAL_TIM_PWM_PulseFinishedCallback>
@@ -5942,7 +5942,7 @@ void HAL_TIM_IRQHandler(TIM_HandleTypeDef *htim)
 #else
         HAL_TIM_IC_CaptureCallback(htim);
  80024f6:	6878      	ldr	r0, [r7, #4]
- 80024f8:	f000 fa1f 	bl	800293a <HAL_TIM_IC_CaptureCallback>
+ 80024f8:	f7fe fb08 	bl	8000b0c <HAL_TIM_IC_CaptureCallback>
  80024fc:	e005      	b.n	800250a <HAL_TIM_IRQHandler+0x142>
       {
 #if (USE_HAL_TIM_REGISTER_CALLBACKS == 1)
@@ -5951,7 +5951,7 @@ void HAL_TIM_IRQHandler(TIM_HandleTypeDef *htim)
 #else
         HAL_TIM_OC_DelayElapsedCallback(htim);
  80024fe:	6878      	ldr	r0, [r7, #4]
- 8002500:	f000 fa11 	bl	8002926 <HAL_TIM_OC_DelayElapsedCallback>
+ 8002500:	f000 fa1b 	bl	800293a <HAL_TIM_OC_DelayElapsedCallback>
         HAL_TIM_PWM_PulseFinishedCallback(htim);
  8002504:	6878      	ldr	r0, [r7, #4]
  8002506:	f000 fa22 	bl	800294e <HAL_TIM_PWM_PulseFinishedCallback>
@@ -5986,7 +5986,7 @@ void HAL_TIM_IRQHandler(TIM_HandleTypeDef *htim)
 #else
       HAL_TIM_PeriodElapsedCallback(htim);
  800252e:	6878      	ldr	r0, [r7, #4]
- 8002530:	f7fe faec 	bl	8000b0c <HAL_TIM_PeriodElapsedCallback>
+ 8002530:	f000 f9f9 	bl	8002926 <HAL_TIM_PeriodElapsedCallback>
 #endif /* USE_HAL_TIM_REGISTER_CALLBACKS */
     }
   }
@@ -6724,12 +6724,12 @@ HAL_StatusTypeDef HAL_TIM_ConfigClockSource(TIM_HandleTypeDef *htim, const TIM_C
  8002922:	46bd      	mov	sp, r7
  8002924:	bd80      	pop	{r7, pc}
 
-08002926 <HAL_TIM_OC_DelayElapsedCallback>:
-  * @brief  Output Compare callback in non-blocking mode
-  * @param  htim TIM OC handle
+08002926 <HAL_TIM_PeriodElapsedCallback>:
+  * @brief  Period elapsed callback in non-blocking mode
+  * @param  htim TIM handle
   * @retval None
   */
-__weak void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
+__weak void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
  8002926:	b480      	push	{r7}
  8002928:	b083      	sub	sp, #12
@@ -6738,7 +6738,7 @@ __weak void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
   UNUSED(htim);
 
   /* NOTE : This function should not be modified, when the callback is needed,
-            the HAL_TIM_OC_DelayElapsedCallback could be implemented in the user file
+            the HAL_TIM_PeriodElapsedCallback could be implemented in the user file
    */
 }
  800292e:	bf00      	nop
@@ -6747,12 +6747,12 @@ __weak void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
  8002934:	f85d 7b04 	ldr.w	r7, [sp], #4
  8002938:	4770      	bx	lr
 
-0800293a <HAL_TIM_IC_CaptureCallback>:
-  * @brief  Input Capture callback in non-blocking mode
-  * @param  htim TIM IC handle
+0800293a <HAL_TIM_OC_DelayElapsedCallback>:
+  * @brief  Output Compare callback in non-blocking mode
+  * @param  htim TIM OC handle
   * @retval None
   */
-__weak void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+__weak void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
 {
  800293a:	b480      	push	{r7}
  800293c:	b083      	sub	sp, #12
@@ -6761,7 +6761,7 @@ __weak void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
   UNUSED(htim);
 
   /* NOTE : This function should not be modified, when the callback is needed,
-            the HAL_TIM_IC_CaptureCallback could be implemented in the user file
+            the HAL_TIM_OC_DelayElapsedCallback could be implemented in the user file
    */
 }
  8002942:	bf00      	nop
@@ -8945,7 +8945,7 @@ __weak void HAL_TIMEx_BreakCallback(TIM_HandleTypeDef *htim)
  8003640:	f7ff fe3a 	bl	80032b8 <checkerror>
  8003644:	e7d0      	b.n	80035e8 <_get_semihosting_exts+0x50>
  8003646:	bf00      	nop
- 8003648:	08004708 	.word	0x08004708
+ 8003648:	08004710 	.word	0x08004710
 
 0800364c <initialise_semihosting_exts>:
  800364c:	b537      	push	{r0, r1, r2, r4, r5, lr}
@@ -9052,7 +9052,7 @@ __weak void HAL_TIMEx_BreakCallback(TIM_HandleTypeDef *htim)
  8003744:	20000134 	.word	0x20000134
  8003748:	20000128 	.word	0x20000128
  800374c:	2000012c 	.word	0x2000012c
- 8003750:	0800471e 	.word	0x0800471e
+ 8003750:	08004726 	.word	0x08004726
  8003754:	20000130 	.word	0x20000130
 
 08003758 <_isatty>:
@@ -9655,10 +9655,10 @@ __weak void HAL_TIMEx_BreakCallback(TIM_HandleTypeDef *htim)
  8003c82:	4798      	blx	r3
  8003c84:	3601      	adds	r6, #1
  8003c86:	e7f2      	b.n	8003c6e <__libc_init_array+0x1e>
- 8003c88:	08004760 	.word	0x08004760
- 8003c8c:	08004760 	.word	0x08004760
- 8003c90:	08004760 	.word	0x08004760
- 8003c94:	08004764 	.word	0x08004764
+ 8003c88:	08004768 	.word	0x08004768
+ 8003c8c:	08004768 	.word	0x08004768
+ 8003c90:	08004768 	.word	0x08004768
+ 8003c94:	0800476c 	.word	0x0800476c
 
 08003c98 <__retarget_lock_init_recursive>:
  8003c98:	4770      	bx	lr
@@ -10157,11 +10157,11 @@ __weak void HAL_TIMEx_BreakCallback(TIM_HandleTypeDef *htim)
  80040f8:	4630      	mov	r0, r6
  80040fa:	f000 f879 	bl	80041f0 <_printf_i>
  80040fe:	e7e4      	b.n	80040ca <_vfiprintf_r+0x1e6>
- 8004100:	08004722 	.word	0x08004722
- 8004104:	0800472c 	.word	0x0800472c
+ 8004100:	0800472a 	.word	0x0800472a
+ 8004104:	08004734 	.word	0x08004734
  8004108:	00000000 	.word	0x00000000
  800410c:	08003ebf 	.word	0x08003ebf
- 8004110:	08004728 	.word	0x08004728
+ 8004110:	08004730 	.word	0x08004730
 
 08004114 <_printf_common>:
  8004114:	e92d 47f0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, lr}
@@ -10492,8 +10492,8 @@ __weak void HAL_TIMEx_BreakCallback(TIM_HandleTypeDef *htim)
  8004420:	f104 0619 	add.w	r6, r4, #25
  8004424:	e7f5      	b.n	8004412 <_printf_i+0x222>
  8004426:	bf00      	nop
- 8004428:	08004733 	.word	0x08004733
- 800442c:	08004744 	.word	0x08004744
+ 8004428:	0800473b 	.word	0x0800473b
+ 800442c:	0800474c 	.word	0x0800474c
 
 08004430 <__sflush_r>:
  8004430:	f9b1 200c 	ldrsh.w	r2, [r1, #12]
