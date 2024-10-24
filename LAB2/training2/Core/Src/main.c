@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-extern void initialise_monitor_handles(void);
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,7 +53,7 @@ static void MX_GPIO_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
-
+extern void initialise_monitor_handles(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -69,8 +69,8 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	initialise_monitor_handles();
-	printf("semihosting test \n");
+	 initialise_monitor_handles();
+	printf("test\n");
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -94,9 +94,10 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
-	  HAL_TIM_Base_Start_IT(&htim4);
-	  HAL_TIM_OC_Start(&htim4, TIM_CHANNEL_1);
-	  HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_1);
+  	  HAL_TIM_Base_Start_IT(&htim4);
+  	  HAL_TIM_OC_Start(&htim4, TIM_CHANNEL_1);
+  	  HAL_TIM_PWM_Start_IT(&htim4, TIM_CHANNEL_3);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -234,7 +235,7 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 1 */
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 48000-1;
+  htim4.Init.Prescaler = 480-1;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim4.Init.Period = 1000;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -252,17 +253,26 @@ static void MX_TIM4_Init(void)
   {
     Error_Handler();
   }
+  if (HAL_TIM_PWM_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
   {
     Error_Handler();
   }
-  sConfigOC.OCMode = TIM_OCMODE_TOGGLE;
-  sConfigOC.Pulse = 0;
+  sConfigOC.OCMode = TIM_OCMODE_ACTIVE;
+  sConfigOC.Pulse = 250;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_OC_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
   {
     Error_Handler();
   }
@@ -299,7 +309,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(OTG_FS_PowerSwitchOn_GPIO_Port, OTG_FS_PowerSwitchOn_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, LD3_Pin|LD5_Pin|LD6_Pin|Audio_RST_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, LD3_Pin|LD6_Pin|Audio_RST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PE2 */
   GPIO_InitStruct.Pin = GPIO_PIN_2;
@@ -359,8 +369,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD3_Pin LD5_Pin LD6_Pin Audio_RST_Pin */
-  GPIO_InitStruct.Pin = LD3_Pin|LD5_Pin|LD6_Pin|Audio_RST_Pin;
+  /*Configure GPIO pins : LD3_Pin LD6_Pin Audio_RST_Pin */
+  GPIO_InitStruct.Pin = LD3_Pin|LD6_Pin|Audio_RST_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -407,17 +417,40 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-uint32_t click_counter = 0;
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
-{
-	if(htim == &htim2)
+	void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	{
-		click_counter++;
-		printf("You clicked the button %d times. \n", click_counter);
-
+		if(htim = &htim4)
+			HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
 	}
-}
+	uint32_t pulse_val;
+	void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
+	{
+	    if(htim == &htim4) // Sprawdzenie, czy to właściwy timer
+	    {
+	        // Wyłączenie przerwań dla timera 4
+	        HAL_TIM_Base_Stop_IT(&htim4);
 
+	        printf("Wprowadź liczbę jasności diody LED od 0 do 1000: \n");
+	        scanf("%d", &pulse_val); // Pobranie wartości od użytkownika
+
+	        // Upewnij się, że wartość mieści się w granicach
+	        if (pulse_val > 1000)
+	        {
+	            pulse_val = 1000; // Maksymalna jasność
+	        }else if (pulse_val<0)
+	        {
+	        	pulse_val=0;
+	        }
+
+	        // Ustawienie wartości PWM na kanale 3
+	        __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, pulse_val);
+
+	        printf("Ustawiona liczba to: %d\n", pulse_val); // Wyświetlenie informacji
+
+	        // Ponowne włączenie przerwań dla timera 4 po wprowadzeniu danych
+	        HAL_TIM_Base_Start_IT(&htim4);
+	    }
+	}
 /* USER CODE END 4 */
 
 /**
