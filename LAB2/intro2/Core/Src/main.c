@@ -5,6 +5,7 @@
   * @brief          : Main program body
   ******************************************************************************
   * @attention
+  * 	THE PROGRAMME RETURNS BUTTON PRESS TIME IN ms
   *
   * Copyright (c) 2024 STMicroelectronics.
   * All rights reserved.
