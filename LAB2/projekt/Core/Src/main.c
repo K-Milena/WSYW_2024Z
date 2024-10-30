@@ -5,7 +5,7 @@
   * @brief          : Main program body
   ******************************************************************************
   * @attention
-  *
+  *	AUTHOR: MILENA KUNA
   * Copyright (c) 2024 STMicroelectronics.
   * All rights reserved.
   *
@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdbool.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -89,7 +90,7 @@ int main(void)
 //	diody.
 
 	initialise_monitor_handles();
-	printf("Semihosting test. \n");
+	printf("Trzymaj przycisk, gdy zielona dioda się świeci. Powodzenia! \n");
 	srand(time(NULL));
   /* USER CODE END 1 */
 
@@ -200,7 +201,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 48000-1;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 4000;
+  htim2.Init.Period = 100000;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -429,27 +430,35 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-
 #define MIN_ON_TIME 500
 #define MAX_ON_TIME 3000
 #define WIN_TOLERANCE 100
-#define DEBOUNCE_DELAY 100  // Opoznienie debouncingu w ms
+#define DEBOUNCE_DELAY 100
 
 uint32_t pulse_val;
-uint32_t led_zapalony;
-uint32_t moment_wcisniecia, moment_zwolnienia;
-uint32_t numer_wyzwolenia_przerwania = 0;
-uint32_t last_capture_time = 0; // Zmienna do debouncingu
+uint32_t press_moment, release_moment;
+uint32_t interrupt_trigger_number = 0;
+uint32_t last_capture_time = 0;
+bool game_active = false; //is game active flag - required for sync of press_time with actual pulse_val
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+    if(htim == &htim4 && !game_active)
+    {
+        pulse_val = (rand() % (MAX_ON_TIME - MIN_ON_TIME + 1)) + MIN_ON_TIME;
+        __HAL_TIM_SET_AUTORELOAD(&htim4, pulse_val);
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+        HAL_TIM_Base_Start_IT(&htim4);
+        game_active = true;
+    }
+}
+
+void HAL_TIM_OC_DelayCallback(TIM_HandleTypeDef *htim)
+{
     if(htim == &htim4)
     {
-        led_zapalony = (rand() % (MAX_ON_TIME - MIN_ON_TIME)) + MIN_ON_TIME;
-        pulse_val = __HAL_TIM_GET_COMPARE(&htim4, TIM_CHANNEL_1);
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+        HAL_TIM_Base_Stop_IT(&htim4);
     }
 }
 
@@ -457,44 +466,45 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
     if(htim == &htim2)
     {
-        uint32_t current_time = HAL_GetTick();  // Pobieramy aktualny czas w ms
+        uint32_t current_time = HAL_GetTick();
         if ((current_time - last_capture_time) < DEBOUNCE_DELAY) {
-            // jesli czas od ostatniego przerwania jest mniejszy niz DEBOUNCE_DELAY, ignorujemy to przerwanie
             return;
         }
-        last_capture_time = current_time;  // aktualizujemy czas ostatniego wciśnięcia
+        last_capture_time = current_time;
 
-        if(numer_wyzwolenia_przerwania == 0)
+        if(interrupt_trigger_number == 0)
         {
-            moment_wcisniecia = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+            press_moment = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
             HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
         }
-        else if(numer_wyzwolenia_przerwania == 1)
+        else if(interrupt_trigger_number == 1)
         {
-            moment_zwolnienia = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+            release_moment = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
             HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
         }
 
-        numer_wyzwolenia_przerwania++;
+        interrupt_trigger_number++;
 
-        if(numer_wyzwolenia_przerwania == 2)
+        if(interrupt_trigger_number == 2)
         {
-            printf("Czas wcisniecia przycisku %d ms \n", moment_zwolnienia - moment_wcisniecia);
-            numer_wyzwolenia_przerwania = 0;
+            interrupt_trigger_number = 0;
+            uint32_t press_time = release_moment - press_moment;
+            printf("Czas wciśnięcia przycisku: %d ms\n", press_time);
 
-            // sprawdzanie wyniku
-            int32_t czas_wcisniecia = moment_zwolnienia - moment_wcisniecia;
-            if(abs(czas_wcisniecia - (int32_t)led_zapalony) <= WIN_TOLERANCE)
+            if(abs((int32_t)press_time - (int32_t)pulse_val) <= WIN_TOLERANCE)
             {
-                printf("Gratulacje! Dioda swiecila sie %d ms!\n", led_zapalony);
+                printf("Gratulacje! Dioda świeciła się %d ms!\n", pulse_val);
             }
             else
             {
-                printf("Nie udalo sie! Dioda swiecila sie %d ms!\n", led_zapalony);
+                printf("Nie udało się! Dioda świeciła się %d ms!\n", pulse_val);
             }
+
+            game_active = false;
         }
     }
 }
+
 /* USER CODE END 4 */
 
 /**
