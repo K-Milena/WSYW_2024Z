@@ -5,7 +5,7 @@
   * @brief          : Main program body
   ******************************************************************************
   * @attention
-  *
+  *		diode brightness control thru semihosting
   * Copyright (c) 2024 STMicroelectronics.
   * All rights reserved.
   *
