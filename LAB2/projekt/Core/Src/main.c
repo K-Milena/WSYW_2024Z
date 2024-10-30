@@ -429,57 +429,71 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
 
 #define MIN_ON_TIME 500
 #define MAX_ON_TIME 3000
 #define WIN_TOLERANCE 100
+#define DEBOUNCE_DELAY 100  // Opoznienie debouncingu w ms
+
 uint32_t pulse_val;
 uint32_t led_zapalony;
+uint32_t moment_wcisniecia, moment_zwolnienia;
+uint32_t numer_wyzwolenia_przerwania = 0;
+uint32_t last_capture_time = 0; // Zmienna do debouncingu
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	if(htim == &htim4)
-	{
-		led_zapalony = (rand() % (3000-500) + 500);
-		pulse_val = __HAL_TIM_GET_COMPARE(&htim4, TIM_CHANNEL_1 );
-	}
+    if(htim == &htim4)
+    {
+        led_zapalony = (rand() % (MAX_ON_TIME - MIN_ON_TIME)) + MIN_ON_TIME;
+        pulse_val = __HAL_TIM_GET_COMPARE(&htim4, TIM_CHANNEL_1);
+    }
 }
 
-// TODO: DEBOUNCING
-uint32_t moment_wcisniecia, moment_zwolnienia;
-uint32_t numer_wyzwolenia_przerwania = 0;
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
-	if(htim == &htim2)
-	{
-		if(numer_wyzwolenia_przerwania == 0)
-		{
-			moment_wcisniecia = HAL_TIM_ReadCapturedValue(htim,TIM_CHANNEL_1);
-			HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
-		}
-		if(numer_wyzwolenia_przerwania == 1)
-		{
-			moment_zwolnienia = HAL_TIM_ReadCapturedValue(htim,TIM_CHANNEL_1);
-			HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
-		}
-		numer_wyzwolenia_przerwania++;
-		if(numer_wyzwolenia_przerwania == 2)
-		{
-			printf("Czas wcisniecia przycisku %d ms \n", moment_zwolnienia-moment_wcisniecia);
-			numer_wyzwolenia_przerwania = 0;
+    if(htim == &htim2)
+    {
+        uint32_t current_time = HAL_GetTick();  // Pobieramy aktualny czas w ms
+        if ((current_time - last_capture_time) < DEBOUNCE_DELAY) {
+            // jesli czas od ostatniego przerwania jest mniejszy niz DEBOUNCE_DELAY, ignorujemy to przerwanie
+            return;
+        }
+        last_capture_time = current_time;  // aktualizujemy czas ostatniego wciśnięcia
 
-			//sprawdzanie wyniku
-			if(abs((int32_t)moment_zwolnienia-moment_wcisniecia) - (int32_t)led_zapalony)
-			{
-				printf(" Gratulacje dioda swiecila sie %d sekund!",led_zapalony);
-			}
-			else {
-				printf("Nie udalo sie! dioda swiecila sie %d sekund!",led_zapalony);
-			}
-		}
+        if(numer_wyzwolenia_przerwania == 0)
+        {
+            moment_wcisniecia = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+            HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
+        }
+        else if(numer_wyzwolenia_przerwania == 1)
+        {
+            moment_zwolnienia = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+            HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_RESET);
+        }
 
-	}
+        numer_wyzwolenia_przerwania++;
+
+        if(numer_wyzwolenia_przerwania == 2)
+        {
+            printf("Czas wcisniecia przycisku %d ms \n", moment_zwolnienia - moment_wcisniecia);
+            numer_wyzwolenia_przerwania = 0;
+
+            // sprawdzanie wyniku
+            int32_t czas_wcisniecia = moment_zwolnienia - moment_wcisniecia;
+            if(abs(czas_wcisniecia - (int32_t)led_zapalony) <= WIN_TOLERANCE)
+            {
+                printf("Gratulacje! Dioda swiecila sie %d ms!\n", led_zapalony);
+            }
+            else
+            {
+                printf("Nie udalo sie! Dioda swiecila sie %d ms!\n", led_zapalony);
+            }
+        }
+    }
 }
 /* USER CODE END 4 */
 

@@ -60,8 +60,8 @@ all: main-build
 main-build: projekt2.elf secondary-outputs
 
 # Tool invocations
-projekt2.elf projekt2.map: $(OBJS) $(USER_OBJS) /home/student/Desktop/lab2/wsyw/cw2/projekt/STM32F411VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "projekt2.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/home/student/Desktop/lab2/wsyw/cw2/projekt/STM32F411VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="projekt2.map" -Wl,--gc-sections -static -specs=rdimon.specs --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+projekt2.elf projekt2.map: $(OBJS) $(USER_OBJS) C:\Users\kavat\Desktop\temporary\WSYW_2024Z\LAB2\projekt\STM32F411VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "projekt2.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\kavat\Desktop\temporary\WSYW_2024Z\LAB2\projekt\STM32F411VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="projekt2.map" -Wl,--gc-sections -static -specs=rdimon.specs --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
