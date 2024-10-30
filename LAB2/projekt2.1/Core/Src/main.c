@@ -5,7 +5,7 @@
   * @brief          : Main program body
   ******************************************************************************
   * @attention
-  *		tim4 setup for PWM and diodes
+  *		tim4 setup for PWM and diodes.
   * Copyright (c) 2024 STMicroelectronics.
   * All rights reserved.
   *
