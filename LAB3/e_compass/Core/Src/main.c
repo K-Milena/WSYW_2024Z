@@ -28,8 +28,8 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-int16_t x;
-float xf;
+int16_t x,y;
+float xf,yf;
 
 /* USER CODE END PTD */
 
@@ -96,6 +96,7 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   uint8_t i2c_rx_buf[2];
+  uint8_t i2c_ry_buf[2];
 
   uint8_t WHO_AM_I_reg = 0x4F;
 //LSM303AGR
@@ -132,21 +133,42 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   	uint8_t magnetometer_i2c_outx_h = 0x69;
   	uint8_t magnetometer_i2c_outx_l = 0x68;
+  	uint8_t magnetometer_i2c_outy_h = 0x6B;
+  	uint8_t magnetometer_i2c_outy_l = 0x6A;
 	uint8_t x_h = 0;
 	uint8_t x_l = 0;
+	uint8_t y_h = 0;
+	uint8_t y_l = 0;
 
-    while (1)
-    {	  HAL_I2C_Mem_Read(&hi2c1, MAG_I2C_ADDR, magnetometer_i2c_outx_h, 1, i2c_rx_buf, 1, 50);
-	  	  x_h = i2c_rx_buf[0];
-	  	  HAL_I2C_Mem_Read(&hi2c1, MAG_I2C_ADDR, magnetometer_i2c_outx_l, 1, i2c_rx_buf, 1, 50);
-	  	  x_l = i2c_rx_buf[0];
-	  	  x = x_h << 8 | x_l;
-	  	  xf = (float)x *1.5;
-	  	  if(xf < 0){
-		  xf = abs(xf);
-	  	  }
+	while (1)
+	{
+	    HAL_I2C_Mem_Read(&hi2c1, MAG_I2C_ADDR, magnetometer_i2c_outx_h, 1, i2c_rx_buf, 1, 50);
+	    x_h = i2c_rx_buf[0];
+	    HAL_I2C_Mem_Read(&hi2c1, MAG_I2C_ADDR, magnetometer_i2c_outx_l, 1, i2c_rx_buf, 1, 50);
+	    x_l = i2c_rx_buf[0];
 
-	  	printf("x axis: %d mGauss\n", (int)xf);  //RESULTS IN miliGauss - 0 INDICATES NORTH
+	    HAL_I2C_Mem_Read(&hi2c1, MAG_I2C_ADDR, magnetometer_i2c_outy_h, 1, i2c_ry_buf, 1, 50);
+	    y_h = i2c_ry_buf[0];
+	    HAL_I2C_Mem_Read(&hi2c1, MAG_I2C_ADDR, magnetometer_i2c_outy_l, 1, i2c_ry_buf, 1, 50);
+	    y_l = i2c_ry_buf[0];
+
+	    int16_t x = (int16_t)((x_h << 8) | x_l);
+	    int16_t y = (int16_t)((y_h << 8) | y_l);
+
+	    float xf = (float)x * 1.5;
+	    float yf = (float)y * 1.5;
+
+	    float heading = atan2(yf, xf) * (180.0 / M_PI);
+	    if (heading < 0)
+	    {
+	        heading += 360.0;
+	    }
+
+	    printf("Raw data - X: %.2f mG, Y: %.2f mG\n", xf, yf);
+	    printf("Heading: %.2f degrees\n", heading);
+	    HAL_Delay(500);
+
+
 
     /* USER CODE END WHILE */
 
