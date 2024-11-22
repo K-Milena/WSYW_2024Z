@@ -95,8 +95,6 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  uint8_t i2c_receive_buf[6];
-
   uint8_t i2c_rx_buf[2];
 
   uint8_t WHO_AM_I_reg = 0x4F;
@@ -107,26 +105,25 @@ int main(void)
 
   uint8_t bytes_to_receive = 1;
 
-  HAL_I2C_Mem_Read(&hi2c1, MAG_I2C_ADDR, WHO_AM_I_reg, 1,i2c_receive_buf, bytes_to_receive, 50);
+  HAL_I2C_Mem_Read(&hi2c1, MAG_I2C_ADDR, WHO_AM_I_reg, 1,i2c_rx_buf, bytes_to_receive, 50);
 
-  printf("WHO_AM_I_A: 0x%02X\n", i2c_receive_buf[0]); //chcemy 0b01000000
+  printf("WHO_AM_I_A: 0x%02X\n", i2c_rx_buf[0]); //chcemy 0b01000000
 
 // ------------------------------------------------------- //
-  //  set system mode to continuous, 20Hz, temp comp
+  //  settings: mode continuous, 20Hz, temp comp
     	uint8_t i2c_tx_buf[2];
     	i2c_tx_buf[0] = 1 << 7 | 0 << 6 | 0 << 5 | 0 << 4 | 0 << 3 | 1 << 2 | 0 << 1 | 0;
   	uint8_t magnetometer_i2c_cfg_reg1 = 0x60;
       HAL_I2C_Mem_Write(&hi2c1, MAG_I2C_ADDR, magnetometer_i2c_cfg_reg1, 1, i2c_tx_buf, 1, 50);
   //    HAL_I2C_Mem_Read(&hi2c1, magnetometer_i2c_addr, magnetometer_i2c_cfg_reg1, 1, i2c_rx_buf, 1, 50);
-  //    printf("Expected: 0x%02X, read: 0x%02X \n", 0b10000100 , i2c_rx_buf[0]);
+  //    printf("Read: 0x%02X \n", i2c_rx_buf[0]); //0b10000100
 
-  // druga konfiguracja - offset canc, lpf
+  // conf: offset canc, lpf
       i2c_tx_buf[0] = 0 << 7 | 0 << 6 | 0 << 5 | 0 << 4 | 0 << 3 | 0 << 2 | 1 << 1 | 1;
     	uint8_t magnetometer_i2c_cfg_reg2 = 0x61;
       HAL_I2C_Mem_Write(&hi2c1, MAG_I2C_ADDR, magnetometer_i2c_cfg_reg2, 1, i2c_tx_buf, 1, 50);
   //    HAL_I2C_Mem_Read(&hi2c1, magnetometer_i2c_addr, magnetometer_i2c_cfg_reg2, 1, i2c_rx_buf, 1, 50);
-  //    printf("Expected: 0x%02X, read: 0x%02X \n", 0b0000011 , i2c_rx_buf[0]);
-
+  //    printf("Read: 0x%02X \n", i2c_rx_buf[0]); //0b0000011
 
 
   /* USER CODE END 2 */
@@ -149,7 +146,7 @@ int main(void)
 		  xf = abs(xf);
 	  	  }
 
-	  printf("x axis: %f \n", xf); //RESULTS IN miliGauss - 0 INDICATES NORTH
+	  	printf("x axis: %d mGauss\n", (int)xf);  //RESULTS IN miliGauss - 0 INDICATES NORTH
 
     /* USER CODE END WHILE */
 
