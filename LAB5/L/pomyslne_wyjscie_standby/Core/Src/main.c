@@ -103,6 +103,9 @@ if(__HAL_PWR_GET_FLAG(PWR_FLAG_SB)!= RESET)
 else
 {
 	printf("Gasmy swiatlo\n");
+
+	HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 10000, RTC_WAKEUPCLOCK_RTCCLK_DIV16);
+
 	HAL_PWR_EnterSTANDBYMode();
 }
 
