@@ -106,7 +106,6 @@ else
 	HAL_PWR_EnterSTANDBYMode();
 }
 
-
 //uint32_t zachowany = HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR0);
 
 //printf("zachowany %d \n", zachowany);
